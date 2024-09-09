@@ -1,0 +1,42 @@
+Script started on Mon 09 Sep 2024 02:03:21 PM MDT
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ make clean
+rm -f *.o LuckyNumber
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ make
+gcc -c LuckyNumber.c
+gcc main.c LuckyNumber.o -o LuckyNumber
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ sudo make install
+[sudo] password for osc: 
+sudo cp LuckyNumber /usr/local/bin
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ LuckyNumber
+Enter a Guess Between 1 and 5: 2
+Total Games: 1 
+Wins: 0 
+Losses Over: 1 
+Losses Under: 0
+Do you want to play again (y/n): y
+Enter a Guess Between 1 and 5: 5
+Total Games: 2 
+Wins: 0 
+Losses Over: 2 
+Losses Under: 0
+Do you want to play again (y/n): y
+Enter a Guess Between 1 and 5: 1
+Total Games: 3 
+Wins: 1 
+Losses Over: 2 
+Losses Under: 0
+Do you want to play again (y/n): y
+Enter a Guess Between 1 and 5: 1
+Total Games: 4 
+Wins: 1 
+Losses Over: 2 
+Losses Under: 1
+Do you want to play again (y/n): n
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ sudo make ins[K[K[Kuninstall
+sudo rm -f /usr/local/bin/LuckyNumber
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ LuckyNumber
+bash: /usr/local/bin/LuckyNumber: No such file or directory
+osc@ubuntu:~/LinuxVirtualBoxAssignment$ exit
+exit
+
+Script done on Mon 09 Sep 2024 02:04:32 PM MDT
