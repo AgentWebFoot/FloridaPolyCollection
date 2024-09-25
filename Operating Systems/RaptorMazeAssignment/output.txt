@@ -1,0 +1,96 @@
+Script started on Wed 25 Sep 2024 12:25:51 PM MDT
+osc@ubuntu:~/RaptorMazeAssignment$ make
+make -C /lib/modules/4.4.0-87-generic/build M=/home/osc/RaptorMazeAssignment modules
+make[1]: Entering directory '/usr/src/linux-headers-4.4.0-87-generic'
+  CC [M]  /home/osc/RaptorMazeAssignment/park.o
+[01m[K/home/osc/RaptorMazeAssignment/park.c:[m[K In function ‘[01m[Kread.part.0[m[K’:
+[01m[K/home/osc/RaptorMazeAssignment/park.c:182:1:[m[K [01;35m[Kwarning: [m[Kthe frame size of 1032 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+ }
+[01;32m[K ^[m[K
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /home/osc/RaptorMazeAssignment/park.mod.o
+  LD [M]  /home/osc/RaptorMazeAssignment/park.ko
+make[1]: Leaving directory '/usr/src/linux-headers-4.4.0-87-generic'
+osc@ubuntu:~/RaptorMazeAssignment$ sudo insmod park.ko
+[sudo] password for osc: 
+osc@ubuntu:~/RaptorMazeAssignment$ python3 jurassicPark.py
+################# ###
+#             #     #
+# # # # ####### #####
+# # # #           # #
+# ### ##### ####### #
+# # #   # #       # #
+### ##### ### # ### #
+#         #   #   # #
+### ######### ### ###
+# #     #   # # #   #
+# ####### ##### ### #
+# # # # #           #
+# # # # # # # # ### #
+#   # # # # # #   # #
+### ### # # #########
+# # # #   # #       #
+# ### # # ### ##### #
+# #   # #   #   #   #
+# ##### ####### # # #
+# #     #     # # # #
+####### #############
+
+osc@ubuntu:~/RaptorMazeAssignment$ python3 jurassicPark.py
+############### #####
+#   # #     # #     #
+### # # # ### # # # #
+# # #   # #   #   # #
+# ### ### # ### ### #
+#       # # #     # #
+# # ####### # ##### #
+# #   #   # #     # #
+##### ####### # # # #
+#       #     # # # #
+### ##### ### ### # #
+#   #   # #     # # #
+####### ### # # ### #
+# #   #     # # #   #
+# ### # ########### #
+# #         # #   # #
+##### ##### # # # # #
+#       #   # # # # #
+### ##### # # # # # #
+#   #   # # # # # # #
+# ###################
+
+osc@ubuntu:~/RaptorMazeAssignment$ python3 jurassicPark.py
+##### ###############
+# #   # #   # # #   #
+# ### # ##### # # # #
+# # # #     #   #   #
+# # # ######### # # #
+# #       # #   # # #
+### ##### # ####### #
+#   #     # #     # #
+# ### ####### #######
+# #   #   #   #     #
+### ### ### ### ### #
+#   #     # #     # #
+# ######### # #######
+#   #     # # # #   #
+### ### ##### # # ###
+# #     #   #   # # #
+# ### ### ####### # #
+#       #     # # # #
+# # # ### ##### ### #
+# # #   # #     #   #
+####### #############
+
+osc@ubuntu:~/RaptorMazeAssignment$ make clean
+make -C /lib/modules/4.4.0-87-generic/build M=/home/osc/RaptorMazeAssignment clean
+make[1]: Entering directory '/usr/src/linux-headers-4.4.0-87-generic'
+  CLEAN   /home/osc/RaptorMazeAssignment/.tmp_versions
+  CLEAN   /home/osc/RaptorMazeAssignment/Module.symvers
+make[1]: Leaving directory '/usr/src/linux-headers-4.4.0-87-generic'
+osc@ubuntu:~/RaptorMazeAssignment$ sudo rmmod park
+osc@ubuntu:~/RaptorMazeAssignment$ exit
+exit
+
+Script done on Wed 25 Sep 2024 12:26:47 PM MDT
