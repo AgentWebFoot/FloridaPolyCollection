@@ -1,0 +1,161 @@
+Script started on Wed 23 Oct 2024 08:32:19 PM MDT
+osc@ubuntu:~/DinoBash$ su -seven seven[C[C[C[C[C
+Password: 
+Hello World
+------------------Starting program----------------------
+shell> ls
+shell> ls -Al
+total 16
+-rw-r--r-- 1 seven seven  220 Aug 31  2015 .bash_logout
+-rw-r--r-- 1 seven seven 3771 Aug 31  2015 .bashrc
+drwx------ 2 seven seven 4096 Oct 23 20:24 .cache
+-rw-r--r-- 1 seven seven  655 May 16  2017 .profile
+shell> cat shell     /home/osc/DinoBash/shell.cpp
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+
+using namespace std;
+
+void motd() {
+	cout << "Hello World\n";
+	cout << "------------------Starting program----------------------\n";
+}
+
+void type_prompt() {
+	cout << "shell> ";
+}
+
+void read_command(char* command, char** parameters) {
+	string input;
+	getline(cin, input);
+	input = "/bin/" + input;
+
+	char* input_copy = strdup(input.c_str());
+	char* token = strtok(input_copy, " ");
+	int i = 0;
+
+	while (token != NULL && i < 10 - 1) {
+		parameters[i++] = token;
+		token = strtok(NULL, " ");
+	}
+
+	parameters[i] = NULL;
+
+	if (i > 0) {
+		strcpy(command, parameters[0]);
+	}
+	else {
+		command[0] = '\0';
+	}
+
+	free(input_copy);
+}
+
+void execute_command(char* command, char** parameters) {
+	if (strcmp(command, "/bin/cd") == 0) {
+		if (parameters[1] == NULL) {
+			cerr << "cd: expected arguments\n";
+		}
+		else if (chdir(parameters[1]) != 0) {
+			perror("cd failed");
+		}
+	}
+	else {
+		pid_t pid = fork();
+		if (pid == 0) {
+			execvp(command, parameters);
+			perror("execvp failed");
+			exit(1);
+		}
+		else if (pid > 0) {
+			int status;
+			wait(&status);
+		}
+		else {
+			perror("fork failed");
+        	}
+	}
+}
+
+int main() {
+	motd();
+
+	char command[256];
+	char* parameters[10];
+
+	while (true) {
+		type_prompt();
+
+		read_command(command, parameters);
+
+		if (strcmp(command, "/bin/exit") == 0) {
+			break;
+		}
+
+		execute_command(command, parameters);
+	}
+
+	cout << "------------------------End Program---------------------\n";
+	return 0;
+}
+shell> ls /bin
+bash		    echo	mv		  shell
+btrfs		    ed		nano		  sleep
+btrfs-calc-size     egrep	nc		  ss
+btrfsck		    false	nc.openbsd	  static-sh
+btrfs-convert	    fgconsole	netcat		  stty
+btrfs-debug-tree    fgrep	netstat		  su
+btrfs-find-root     findmnt	networkctl	  sync
+btrfs-image	    fsck.btrfs	nisdomainname	  systemctl
+btrfs-map-logical   fuser	ntfs-3g		  systemd
+btrfs-select-super  fusermount	ntfs-3g.probe	  systemd-ask-password
+btrfs-show-super    getfacl	ntfs-3g.secaudit  systemd-escape
+btrfstune	    grep	ntfs-3g.usermap   systemd-hwdb
+btrfs-zero-log	    gunzip	ntfscat		  systemd-inhibit
+bunzip2		    gzexe	ntfscluster	  systemd-machine-id-setup
+busybox		    gzip	ntfscmp		  systemd-notify
+bzcat		    hostname	ntfsfallocate	  systemd-tmpfiles
+bzcmp		    ip		ntfsfix		  systemd-tty-ask-password-agent
+bzdiff		    journalctl	ntfsinfo	  tailf
+bzegrep		    kbd_mode	ntfsls		  tar
+bzexe		    kill	ntfsmove	  tempfile
+bzfgrep		    kmod	ntfstruncate	  touch
+bzgrep		    less	ntfswipe	  true
+bzip2		    lessecho	open		  udevadm
+bzip2recover	    lessfile	openvt		  ulockmgr_server
+bzless		    lesskey	pidof		  umount
+bzmore		    lesspipe	ping		  uname
+cat		    ln		ping6		  uncompress
+chacl		    loadkeys	plymouth	  unicode_start
+chgrp		    login	ps		  vdir
+chmod		    loginctl	pwd		  wdctl
+chown		    lowntfs-3g	rbash		  which
+chvt		    ls		readlink	  whiptail
+cp		    lsblk	red		  ypdomainname
+cpio		    lsmod	rm		  zcat
+dash		    mkdir	rmdir		  zcmp
+date		    mkfs.btrfs	rnano		  zdiff
+dd		    mknod	run-parts	  zegrep
+df		    mktemp	sed		  zfgrep
+dir		    more	setfacl		  zforce
+dmesg		    mount	setfont		  zgrep
+dnsdomainname	    mountpoint	setupcon	  zless
+domainname	    mt		sh		  zmore
+dumpkeys	    mt-gnu	sh.distrib	  znew
+shell> mkdir temp
+shell> cd temp
+shell> pwd
+/home/seven/temp
+shell> cd ..
+shell> pwd
+/home/seven
+shell> exit
+------------------------End Program---------------------
+osc@ubuntu:~/DinoBash$ exit[Kit[K[Kt
+exit
+
+Script done on Wed 23 Oct 2024 08:34:05 PM MDT
