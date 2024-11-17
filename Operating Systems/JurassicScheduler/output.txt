@@ -1,0 +1,85 @@
+Script started on Sat 16 Nov 2024 06:08:24 PM MST
+osc@ubuntu:~/JurassicScheduler$ make
+g++ -Wall -std=c++11 -o scheduler scheduler.cpp
+osc@ubuntu:~/JurassicScheduler$ make install
+sudo cp scheduler /bin/scheduler
+[sudo] password for osc: 
+sudo chmod +x /bin/scheduler
+osc@ubuntu:~/JurassicScheduler$ scheduler
+Enter Filename: test.txt
+
+fifo
+
+NN	###############-------------
+Mouse	---------------###----------
+Paint	------------------##--------
+Word	--------------------########
+
+Average Response Time: 11.5
+Average Wait Time: 11.5
+Throughput at 10 Cycles: 0
+
+sjf
+
+NN	#-------------##############
+Mouse	-###------------------------
+Paint	----##----------------------
+Word	------########--------------
+
+Average Response Time: 1
+Average Wait Time: 10.25
+Throughput at 10 Cycles: 2
+
+rr
+
+NN	##-#--#---#-#-#-#-#-#-#-####
+Mouse	--#--#---#------------------
+Paint	----#---#-------------------
+Word	-------#---#-#-#-#-#-#-#----
+
+Average Response Time: 1.5
+Average Wait Time: 15
+Throughput at 10 Cycles: 2
+osc@ubuntu:~/JurassicScheduler$ scheduler
+Enter Filename: input.txt
+
+fifo
+
+Clock	###------------------
+Map	---##########--------
+Mouse	-------------###-----
+Key	----------------#####
+
+Average Response Time: 6.75
+Average Wait Time: 6.75
+Throughput at 10 Cycles: 1
+
+sjf
+
+Clock	###------------------
+Map	-----------##########
+Mouse	---###---------------
+Key	------#####----------
+
+Average Response Time: 3.75
+Average Wait Time: 8
+Throughput at 10 Cycles: 3
+
+rr
+
+Clock	##-#-----------------
+Map	--#---#--#--#-#-#####
+Mouse	----#--#--#----------
+Key	-----#--#--#-#-#-----
+
+Average Response Time: 1.5
+Average Wait Time: 10.75
+Throughput at 10 Cycles: 2
+osc@ubuntu:~/JurassicScheduler$ make uninstall
+sudo rm -f /usr/local/bin/scheduler
+osc@ubuntu:~/JurassicScheduler$  a[K[Kmake clean
+rm -f scheduler *.0
+osc@ubuntu:~/JurassicScheduler$ exit
+exit
+
+Script done on Sat 16 Nov 2024 06:09:07 PM MST
