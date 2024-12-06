@@ -1,0 +1,1 @@
+Yes. Without nano-sleep the different threads were fighting over the semaphores more. By including nano-sleep, there was a moment where a thread would not be looking for a semaphore that way the other threads could possibly grab one. Without it, there was more fighting.
