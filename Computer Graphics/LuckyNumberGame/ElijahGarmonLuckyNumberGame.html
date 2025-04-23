@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<p id="scoreboard"></p>
+		<button id="button" class="button" onclick="playGame();">The Button</button>
+		<p id="resultText"></p>
+		<p id="num1"></p>
+		<p id="num2"></p>
+		
+		<img id="scoreImage" src="happy.jpg" alt="score">
+
+	</body>
+
+	<script>
+		class Scoreboard {
+			constructor() {
+				this.wins = 0;
+				this.losses = 0;
+				this.updateScoreboard();
+			}
+			
+			gameWin() {
+				this.wins++;
+			}
+
+			gameLoss() {
+				this.losses++;
+			}
+
+			updateScoreboard() {
+				document.getElementById("scoreboard").textContent = "Wins: " + this.wins + " Losses: " + this.losses;
+
+				if (this.losses > this.wins) {
+					document.getElementById("scoreImage").src = "sad.png";
+				} else {
+					document.getElementById("scoreImage").src = "happy.jpg";
+				}
+			}
+		}
+		
+		function playGame() {
+			mainInstance.luckyNumber();
+		}
+
+		class Main {
+			constructor() {
+				this.scoreboard = new Scoreboard();
+			}
+
+			luckyNumber() {
+				var num1 = Math.floor(Math.random() * 99) + 1;
+				var num2 = Math.floor(Math.random() * 99) + 1;
+
+				document.getElementById("num1").textContent = "Number 1: " + num1;
+				document.getElementById("num2").textContent = "Number 2: " + num2;
+
+				if (num2 > num1) {
+					document.getElementById("resultText").textContent = "You Win";
+					this.scoreboard.gameWin();
+				} else if (num1 > num2) {
+					document.getElementById("resultText").textContent = "You Lose";
+					this.scoreboard.gameLoss();
+				} else {
+					document.getElementById("resultText").textContent = "You Tie";
+				}
+
+				this.scoreboard.updateScoreboard();
+			}
+		}
+		
+		const mainInstance = new Main();
+	</script>
+</html>

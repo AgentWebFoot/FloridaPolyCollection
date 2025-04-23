@@ -1,0 +1,279 @@
+<!DOCTYPE HTML>
+<HTML lang="en">
+	<Head>
+	<Title>PlacementLab</TITLE>
+		<script id="2dVertexShader" type="notjs">
+			attribute vec4 a_position;	
+
+			attribute vec3 vert_color;
+
+			varying vec3 fragColor;
+			
+			uniform vec3 transform;
+			uniform vec3 rotation;
+			uniform vec3 velocity;
+			uniform float time;
+			
+			vec4 PositionObject(vec4 pos) {
+			
+			vec3 dynamicPosition = vec3(pos.x + velocity.x * time, 
+                                    pos.y + velocity.y * time, 
+                                    pos.z + velocity.z * time);
+			
+				mat4 translateM = mat4(1.0,0.0,0.0,0.0,
+							   0.0,1.0,0.0,0.0,
+							   0.0,0.0,1.0,0.0,
+							   transform.x,transform.y,transform.z,1.0);
+				return translateM * vec4(dynamicPosition, 1.0);
+			}
+			vec4 RotateObject(vec4 pos) {
+				vec3 c = cos(rotation);
+				vec3 s = sin(rotation);
+				fragColor = vert_color;
+				
+				mat4 rotateX = mat4(1.0,  0.0,  0.0,  0.0,
+									0.0,  c.x,  -s.x, 0.0,
+									0.0,  s.x,  c.x,  0.0,
+									0.0,  0.0,  0.0,  1.0);
+
+				mat4 rotateY = mat4(c.y,  0.0, -s.y,  0.0,
+									0.0,  1.0, 0.0,   0.0,
+									s.y,  0.0, c.y,   0.0,
+									0.0,  0.0, 0.0,   1.0);
+									
+				mat4 rotateZ = mat4(c.z,  -s.z, 0.0,  0.0,
+									s.z,  c.z,  0.0,  0.0,
+									0.0,  0.0,  1.0,  0.0,
+									0.0,  0.0,  0.0,  1.0);
+				return rotateZ * rotateY * rotateX * pos;
+			}
+			void main()
+			{
+
+				gl_Position=PositionObject(RotateObject(a_position));
+			}		
+		</SCRIPT>
+		<script id="webglInterface">
+			class WebGL_Interface{
+				constructor() {
+					this.vertexShaderSource = document.getElementById("2dVertexShader").text;
+					this.fragmentShaderSource = document.getElementById("2dFragmentShader").text;
+					this.vertexShader = this.createShader(gl.VERTEX_SHADER, this.vertexShaderSource);
+					this.fragmenShader = this.createShader(gl.FRAGMENT_SHADER, this.fragmentShaderSource);
+					this.program = this.createProgram(this.vertexShader,this.fragmenShader);
+					gl.viewport(0,0, gl.canvas.width, gl.canvas.height);
+					gl.clearColor(1,1,1,1);
+					gl.clear(gl.COLOR_BUFFER_BIT);		
+					
+					gl.enable(gl.DEPTH_TEST);
+					
+					gl.useProgram(this.program);
+				}
+				
+				createShader(type,source) {
+					var shader = gl.createShader(type);
+					gl.shaderSource(shader,source);
+					gl.compileShader(shader);
+					var success = gl.getShaderParameter(shader,gl.COMPILE_STATUS);
+					if(success) {
+						return shader;
+					}
+					console.error(gl.getShaderInfoLog(shader));
+					gl.deleteShader(shader);
+				}
+				
+				createProgram(vs,fs) {
+					var program = gl.createProgram();
+					gl.attachShader(program,vs);
+					gl.attachShader(program,fs);
+					gl.linkProgram(program);
+					var succsess = gl.getProgramParameter(program,gl.LINK_STATUS);
+					if(succsess){
+						return program;
+					}
+					console.error(gl.getProgramInfoLog(program));
+					gl.deleteProgram(program);	
+				}
+		
+			}
+		</SCRIPT>
+		<script id="2dFragmentShader" type="notjs">
+			precision mediump float;
+			varying vec3 fragColor;
+			void main() {
+				gl_FragColor = vec4(fragColor,1);
+			}
+		</script>
+		<script>
+			myWebGL = null;
+			
+			function loop() {
+				gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+				for(var i=0; i < m.myTriangle.length; i ++){
+				
+					m.myTriangle[i].update();
+					
+					if (i == 0) {
+						m.myTriangle[i].rot[1] += 0.01;
+					} 
+					else if (i == 1) {
+						m.myTriangle[i].rot[0] += 0.01;
+					} 
+					else if (i == 2) {
+						m.myTriangle[i].rot[2] += 0.01;
+					} 
+					m.myTriangle[i].render(m.myWEBGL.program );
+				}
+				requestAnimationFrame(loop);
+			}
+			
+			class main {	
+				constructor(){
+				
+				this.myWEBGL = new WebGL_Interface();
+				myWebGL= this.myWEBGL;
+				this.myTriangle = [];
+				this.name = "My Class";
+				
+				let tri1 = new Triangle1();
+				tri1.loc = [-0.5, 0.5, 0.0];
+				this.myTriangle.push(tri1);
+				
+				let tri2 = new Triangle1();
+				tri2.loc = [-0.5, -0.5, 0.0];
+				this.myTriangle.push(tri2);
+				
+				let tri3 = new Triangle1();
+				tri3.loc = [0.5, -0.5, 0.0];
+				this.myTriangle.push(tri3);
+				
+
+				}
+				
+				static canvasHandle(event) {
+					var temp = new Triangle1();
+					
+					temp.velocity = [
+						(Math.random() - 0.5) * 0.02,
+						(Math.random() - 0.5) * 0.02,
+						0
+					];
+					
+					m.myTriangle.push(temp);
+				}
+			}			
+		</script>
+		<script>
+			class Triangle1 {
+				constructor() {
+					this.buffer=gl.createBuffer();
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+					this.vertices =
+						[	
+						0,.25,0,1,0,0,
+						.25,0,0,1,0,0,
+						0,0,-.25,1,0,0,
+						
+						0,.25,0,0,1,0,
+						.25,0,0,0,1,0,
+						0,0,.25,0,1,0,
+						
+						0,.25,0,0,0,1,
+						-.25,0,0,0,0,1,
+						0,0,-.25,0,0,1,
+						
+						0,.25,0,0,1,1,
+						-.25,0,0,0,1,1,
+						0,0,.25,0,1,1,
+						
+						0,-.25,0,1,1,0,
+						.25,0,0,1,1,0,
+						0,0,-.25,1,1,0,
+						
+						0,-.25,0,1,0,1,
+						.25,0,0,1,0,1,
+						0,0,.25,1,0,1,
+						
+						0,-.25,0,1,0,0,
+						-.25,0,0,1,0,0,
+						0,0,-.25,1,0,0,
+						
+						0,-.25,0,0,0,1,
+						-.25,0,0,0,0,1,
+						0,0,.25,0,0,1
+						];
+					gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+					this.loc = [0.0,0.0,0.0];
+					this.rot = [0.0,0.0,0.0];
+					this.velocity = [0.0, 0.0, 0.0];
+				}
+				
+				update() {
+					this.loc[0] += this.velocity[0];
+					this.loc[1] += this.velocity[1];
+					this.loc[2] += this.velocity[2];
+				}
+			 
+				render(program) {
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+
+					var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+					var size = 3;
+					var type = gl.FLOAT;
+					var normalize = false;
+					var stride = 6 * Float32Array.BYTES_PER_ELEMENT;
+					var offset = 0;
+					gl.enableVertexAttribArray(positionAttributeLocation);
+					gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+
+					var colorAttributeLocation = gl.getAttribLocation(program, "vert_color");
+					size = 3;
+					type = gl.FLOAT;
+					normalize = false;
+					stride = 6 * Float32Array.BYTES_PER_ELEMENT;
+					offset = 3 * Float32Array.BYTES_PER_ELEMENT;
+					gl.enableVertexAttribArray(colorAttributeLocation);
+					gl.vertexAttribPointer(colorAttributeLocation, size, type, normalize, stride, offset);
+
+					var tranLoc = gl.getUniformLocation(program, 'transform');
+					gl.uniform3fv(tranLoc, new Float32Array(this.loc));
+
+					var thetaLoc = gl.getUniformLocation(program, 'rotation');
+					gl.uniform3fv(thetaLoc, new Float32Array(this.rot));
+
+					var velocityLoc = gl.getUniformLocation(program, 'velocity');
+					gl.uniform3fv(velocityLoc, new Float32Array(this.velocity));
+
+					var timeLoc = gl.getUniformLocation(program, 'time');
+					gl.uniform1f(timeLoc, performance.now() / 1000.0);
+
+					var primitiveType = gl.TRIANGLES;
+					offset = 0;
+					var count = 24;
+					gl.drawArrays(primitiveType, offset, count);
+				}
+			}
+ </script>
+	</Head>
+	<BODY>
+		<HEADER>
+		
+		</HEADER>
+		
+		<CANVAS id="myCanvas" width="600" height="600" style = "border: 1px solid #000;">
+			Your browser does not support canvas.
+		</CANVAS>
+
+		<SCRIPT>
+			var canvas = document.getElementById("myCanvas");
+			var gl = canvas.getContext("webgl");
+			
+			var m = new main();
+			requestAnimationFrame(loop);			
+			canvas.addEventListener("click",main.canvasHandle);
+		
+		</SCRIPT>
+		
+	</BODY>
+	
+</HTML>

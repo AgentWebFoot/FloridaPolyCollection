@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>WEBGL Initials</title>
+		
+		<script id="2dVertexShader" type="notjs">
+			precision mediump float;
+			
+			attribute vec2 vertPosition;
+			attribute vec3 vertColor;
+			
+			varying vec3 fragColor;
+			
+			void main() {
+				fragColor = vertColor;
+				gl_Position = vec4(vertPosition, 0.0, 1.0);
+			}
+		</script>
+		
+		<script id="2dFragmentShader" type="notjs">
+			precision mediump float;
+			
+			varying vec3 fragColor;
+			
+			void main() {
+				gl_FragColor = vec4(fragColor, 1.0);
+			}
+		</script>
+		
+		<script>
+			class InitWebGLProgram {
+				constructor(gl) {
+					this.gl = gl;
+				}
+				
+				createShader(shaderId) {
+					const shaderScript = document.getElementById(shaderId);
+					if (!shaderScript) {
+						console.error("Shader script not found: " + shaderId);
+						return null;
+					}
+					
+					let shaderType;
+					if (shaderId === "2dVertexShader") {
+						shaderType = this.gl.VERTEX_SHADER;
+					} else if (shaderId === "2dFragmentShader") {
+						shaderType = this.gl.FRAGMENT_SHADER;
+					} else {
+						console.error("Unknown shader type for id: " + shaderId);
+						return null;
+					}
+					
+					const shader = this.gl.createShader(shaderType);
+					this.gl.shaderSource(shader, shaderScript.textContent);
+					this.gl.compileShader(shader);
+					if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+						console.error("Error compiling shader: " + this.gl.getShaderInfoLog(shader));
+						this.gl.deleteShader(shader);
+						return null;
+					}
+					return shader;
+				}
+				
+				createProgram(vertexShader, fragmentShader) {
+					const program = this.gl.createProgram();
+					this.gl.attachShader(program, vertexShader);
+					this.gl.attachShader(program, fragmentShader);
+					this.gl.linkProgram(program);
+					if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+						console.error("Error linking program: " + this.gl.getProgramInfoLog(program));
+						this.gl.deleteProgram(program);
+						return null;
+					}
+					this.gl.validateProgram(program);
+					if (!this.gl.getProgramParameter(program, this.gl.VALIDATE_STATUS)) {
+						console.error("Error validating program: " + this.gl.getProgramInfoLog(program));
+						return null;
+					}
+					return program;
+				}
+			}
+			
+			class Shape {
+				constructor(gl) {
+					this.gl = gl;
+					this.vertices = new Float32Array([
+						-0.7, 0.0,   0, 0, 1,
+						-0.5, 0.0,   0, 0, 1,
+						-0.5, 0.1,   0, 0, 1,
+						-0.6, 0.1,   0, 0, 1,
+						-0.6, 0.2,   0, 0, 1,
+						-0.5, 0.2,   0, 0, 1,
+						-0.5, 0.3,   0, 0, 1,
+						-0.6, 0.3,   0, 0, 1,
+						-0.6, 0.4,   0, 0, 1,
+						-0.5, 0.4,   0, 0, 1,
+						-0.5, 0.5,   0, 0, 1,
+						-0.7, 0.5,   0, 0, 1,
+						
+						-0.4, 0.5,   0, 1, 0,
+						-0.1, 0.5,   0, 1, 0,
+						-0.1, 0.4,   0, 1, 0,
+						-0.2, 0.4,   0, 1, 0,
+						-0.2, 0.0,   0, 1, 0,
+						-0.3, 0.0,   0, 1, 0,
+						-0.3, 0.4,   0, 1, 0,
+						-0.4, 0.4,   0, 1, 0,
+						
+						0.0, 0.5,   1, 0, 0,
+						0.4, 0.5,   1, 0, 0,
+						0.4, 0.4,   1, 0, 0,
+						0.1, 0.4,   1, 0, 0,
+						0.1, 0.1,   1, 0, 0,
+						0.3, 0.1,   1, 0, 0,
+						0.3, 0.2,   1, 0, 0,
+						0.2, 0.2,   1, 0, 0,
+						0.2, 0.3,   1, 0, 0,
+						0.4, 0.3,   1, 0, 0,
+						0.4, 0.0,   1, 0, 0,
+						0.0, 0.0,   1, 0, 0
+					]);
+					
+					this.vertexBuffer = this.gl.createBuffer();
+					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+					this.gl.bufferData(
+						this.gl.ARRAY_BUFFER,
+						this.vertices,
+						this.gl.STATIC_DRAW
+					);
+				}
+				
+				render(program) {
+					const gl = this.gl;
+					gl.useProgram(program);
+
+					const positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
+					const colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+
+					gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+
+					gl.vertexAttribPointer(
+						positionAttribLocation,
+						2,
+						gl.FLOAT,
+						false,
+						5 * Float32Array.BYTES_PER_ELEMENT,
+						0
+					);
+					gl.vertexAttribPointer(
+						colorAttribLocation,
+						3,
+						gl.FLOAT,
+						false,
+						5 * Float32Array.BYTES_PER_ELEMENT,
+						2 * Float32Array.BYTES_PER_ELEMENT
+					);
+
+					gl.enableVertexAttribArray(positionAttribLocation);
+					gl.enableVertexAttribArray(colorAttribLocation);
+
+					gl.drawArrays(gl.LINE_LOOP, 0, 12);
+
+					gl.drawArrays(gl.LINE_LOOP, 12, 8);
+					
+					gl.drawArrays(gl.LINE_LOOP, 20, 12);
+				}
+			}
+			
+			class Main {
+				constructor() {
+					this.canvas = document.getElementById("myCanvas");
+					this.gl = this.canvas.getContext("webgl");
+					if (!this.gl) {
+						console.error("WebGL not supported, trying experimental-webgl");
+						this.gl = this.canvas.getContext("experimental-webgl");
+					}
+					if (!this.gl) {
+						alert("Your browser does not support WebGL");
+						return;
+					}
+					
+					this.gl.clearColor(0.75, 0.75, 0.75, 1);
+					this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+					
+					this.initProgram();
+				}
+				
+				initProgram() {
+					const webglProgram = new InitWebGLProgram(this.gl);
+					const vertexShader = webglProgram.createShader("2dVertexShader");
+					const fragmentShader = webglProgram.createShader("2dFragmentShader");
+					if (!vertexShader || !fragmentShader) {
+						return;
+					}
+					this.program = webglProgram.createProgram(vertexShader, fragmentShader);
+					if (!this.program) {
+						return;
+					}
+					
+					this.shape = new Shape(this.gl);
+
+					this.renderShape();
+					
+					window.main = this;
+				}
+				
+				renderShape() {
+					this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+					this.shape.render(this.program);
+				}
+			}
+			
+			window.addEventListener('load', () => {
+				window.main = new Main();
+			});
+		</script>
+	</head>
+	<body>
+		<header></header>
+		<canvas id="myCanvas" width="640" height="400">
+			Your browser does not support canvas.
+		</canvas>
+	</body>
+</html>
