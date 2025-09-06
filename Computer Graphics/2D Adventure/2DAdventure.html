@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<canvas id="game-canvas" width="512" height="512"></canvas>
+	</body>
+
+	<style>
+		#game-canvas {
+			border: 1px solid black;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		.entity-wrapper {
+			position: relative;
+		}
+
+		.health-bar-container {
+			position: absolute;
+			bottom: -10px;
+			left: 0;
+			width: 64px;
+			height: 5px;
+			background-color: red;
+		}
+
+		.health-bar {
+			height: 5px;
+			background-color: green;
+			width: 100%;
+		}
+
+		#game-message {
+			font-size: 24px;
+			color: red;
+			position: absolute;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			display: none;
+		}
+	</style>
+
+	<script>
+		class Player {
+			constructor(x, y) {
+				this.maxHP = 20;
+				this.hp = this.maxHP;
+				this.atk = 4;
+				this.def = 2;
+				this.x = x;
+				this.y = y;
+
+				this.image = document.createElement('img');
+				this.image.src = "player.png";
+				this.image.alt = "player";
+				this.image.width = 64;
+				this.image.height = 64;
+
+				this.healthBarContainer = document.createElement("div");
+				this.healthBarContainer.classList.add("health-bar-container");
+
+				this.healthBar = document.createElement("div");
+				this.healthBar.classList.add("health-bar");
+
+				this.healthBarContainer.appendChild(this.healthBar);
+			}
+
+			takeDamage(amount) {
+				this.hp -= amount;
+				this.hp = Math.max(this.hp, 0);
+				this.updateHealthBar();
+			}
+
+			updateHealthBar() {
+				const healthPercentage = (this.hp / this.maxHP) * 100;
+				this.healthBar.style.width = `${Math.max(healthPercentage, 0)}%`;
+			}
+
+			restoreHealth() {
+				this.hp = this.maxHP;
+				this.updateHealthBar();
+			}
+		}
+
+		class Monster {
+			constructor(x, y, type) {
+				if (type == 1) {
+					this.maxHP = 20;
+					this.atk = 3;
+					this.def = 3;
+					this.image = document.createElement('img');
+					this.image.src = "monster.png";
+				} else if (type == 2) {
+					this.maxHP = 12;
+					this.atk = 5;
+					this.def = 2;
+					this.image = document.createElement('img');
+					this.image.src = "monster2.png";
+				} else {
+					this.maxHP = 15;
+					this.atk = 4;
+					this.def = 3;
+					this.image = document.createElement('img');
+					this.image.src = "monster3.png";
+				}
+
+				this.x = x;
+				this.y = y;
+				this.hp = this.maxHP;
+				this.image.alt = "monster";
+				this.image.width = 64;
+				this.image.height = 64;
+
+				this.healthBarContainer = document.createElement("div");
+				this.healthBarContainer.classList.add("health-bar-container");
+
+				this.healthBar = document.createElement("div");
+				this.healthBar.classList.add("health-bar");
+
+				this.healthBarContainer.appendChild(this.healthBar);
+			}
+
+			takeDamage(amount) {
+				this.hp -= amount;
+				this.hp = Math.max(this.hp, 0);
+				this.updateHealthBar();
+			}
+
+			updateHealthBar() {
+				const healthPercentage = (this.hp / this.maxHP) * 100;
+				this.healthBar.style.width = `${Math.max(healthPercentage, 0)}%`;
+			}
+		}
+
+		class Wall {
+			constructor(x, y) {
+				this.x = x;
+				this.y = y;
+				this.width = 64;
+				this.height = 64;
+				this.color = 'gray';
+			}
+		}
+
+		class Tree {
+			constructor(x, y) {
+				this.x = x;
+				this.y = y;
+				this.width = 64;
+				this.height = 64;
+				this.color = 'green';
+			}
+		}
+
+		class Potion {
+			constructor(x, y) {
+				this.x = x;
+				this.y = y;
+
+				this.image = document.createElement('img');
+				this.image.src = "potion.png";
+				this.image.alt = "potion";
+				this.image.width = 64;
+				this.image.height = 64;
+			}
+		}
+
+		class Grid {
+			constructor(gridSize, canvasId) {
+				this.gridSize = gridSize;
+				this.canvas = document.getElementById(canvasId);
+				this.ctx = this.canvas.getContext("2d");
+				this.gridArray = this.initializeArray(gridSize);
+				this.cellSize = 64;
+			}
+
+			initializeArray(size) {
+				return Array.from({ length: size }, () =>
+					Array.from({ length: size }, () => ({ entities: [] }))
+				);
+			}
+
+			addEntity(entity) {
+				const { x, y } = entity;
+				this.gridArray[x][y].entities.push(entity);
+				this.renderGrid();
+			}
+
+			renderGrid() {
+				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+				for (let x = 0; x < this.gridSize; x++) {
+					for (let y = 0; y < this.gridSize; y++) {
+						const cell = this.gridArray[x][y];
+						for (const entity of cell.entities) {
+							this.drawEntity(entity, x, y);
+						}
+					}
+				}
+			}
+
+			drawEntity(entity, x, y) {
+				if (entity instanceof Player || entity instanceof Monster || entity instanceof Potion) {
+					this.ctx.drawImage(entity.image, x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+					this.drawHealthBar(entity, x, y);
+				} else if (entity instanceof Wall) {
+					this.drawWall(entity, x, y);
+				} else if (entity instanceof Tree) {
+					this.drawTree(entity, x, y);
+				}
+			}
+
+			drawHealthBar(entity, x, y) {
+				if (entity instanceof Player || entity instanceof Monster) {
+					this.ctx.fillStyle = "red";
+					const healthPercentage = (entity.hp / entity.maxHP) * 100;
+					this.ctx.fillRect(x * this.cellSize, (y + 1) * this.cellSize - 10, this.cellSize, 5);
+					this.ctx.fillStyle = "green";
+					this.ctx.fillRect(x * this.cellSize, (y + 1) * this.cellSize - 10, (this.cellSize * healthPercentage) / 100, 5);
+				}
+			}
+
+			drawWall(wall, x, y) {
+				this.ctx.fillStyle = "gray";
+				this.ctx.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+			}
+
+			drawTree(tree, x, y) {
+				this.ctx.fillStyle = tree.color;
+				const halfBase = this.cellSize / 2;
+				const height = this.cellSize;
+
+				this.ctx.beginPath();
+				this.ctx.moveTo(x * this.cellSize + halfBase, y * this.cellSize);
+				this.ctx.lineTo(x * this.cellSize, y * this.cellSize + height);
+				this.ctx.lineTo(x * this.cellSize + this.cellSize, y * this.cellSize + height);
+				this.ctx.closePath();
+				this.ctx.fill();
+			}
+
+			drawPotion(potion, x, y) {
+				this.ctx.drawImage(potion.image, x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+			}
+
+			moveEntity(entity, newX, newY) {
+				const { x, y } = entity;
+
+				const currentCell = this.gridArray[x][y];
+				currentCell.entities = currentCell.entities.filter((e) => e !== entity);
+
+				entity.x = newX;
+				entity.y = newY;
+
+				this.gridArray[newX][newY].entities.push(entity);
+				this.renderGrid();
+			}
+
+			isPositionBlocked(x, y) {
+				const entitiesAtNewPos = this.gridArray[x]?.[y]?.entities || [];
+				return entitiesAtNewPos.some((entity) => entity instanceof Wall || entity instanceof Tree);
+			}
+		}
+
+		class Main {
+			constructor() {
+				this.grid = new Grid(8, "game-canvas");
+				this.player = new Player(0, 0);
+				this.monsters = [
+					new Monster(1, 4, 1),
+					new Monster(4, 4, 2),
+					new Monster(7, 0, 2),
+					new Monster(6, 6, 3),
+				];
+				this.walls = [
+					new Wall(1, 0),
+					new Wall(1, 1),
+					new Wall(3, 2),
+					new Wall(5, 1),
+					new Wall(7, 3),
+					new Wall(2, 7),
+				];
+				this.trees = [
+					new Tree(2, 5),
+					new Tree(4, 6),
+					new Tree(6, 4),
+					new Tree(0, 6),
+				];
+
+				this.potions = [
+					new Potion(4, 3),
+					new Potion(5, 7),
+				];
+
+				this.isPlayerTurn = true;
+				this.setupGame();
+				this.startGameLoop();
+			}
+
+			setupGame() {
+				this.grid.addEntity(this.player);
+				this.monsters.forEach((monster) => this.grid.addEntity(monster));
+				this.walls.forEach((wall) => this.grid.addEntity(wall));
+				this.trees.forEach((tree) => this.grid.addEntity(tree));
+				this.potions.forEach((potion) => this.grid.addEntity(potion));
+			}
+
+			startGameLoop() {
+				document.addEventListener("keydown", (e) => this.handlePlayerMovement(e));
+				this.gameLoop();
+			}
+
+			gameLoop() {
+				this.grid.renderGrid();
+				requestAnimationFrame(() => this.gameLoop());
+			}
+
+			handlePlayerMovement(e) {
+				if (!this.isPlayerTurn) return;
+
+				const dx = { ArrowUp: 0, ArrowDown: 0, ArrowLeft: -1, ArrowRight: 1 };
+				const dy = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: 0, ArrowRight: 0 };
+
+				if (e.key in dx) {
+					const newX = this.player.x + dx[e.key];
+					const newY = this.player.y + dy[e.key];
+
+					if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8 && !this.grid.isPositionBlocked(newX, newY)) {
+						this.grid.moveEntity(this.player, newX, newY);
+						this.isPlayerTurn = false;
+
+						this.monsters.forEach((monster) => {
+							if (monster.x === this.player.x && monster.y === this.player.y) {
+								const damage = (this.player.atk - monster.def) * Math.floor(Math.random() * 5) + 1;
+								monster.takeDamage(damage);
+
+								if (monster.hp <= 0) {
+									this.grid.gridArray[monster.x][monster.y].entities = this.grid.gridArray[monster.x][monster.y].entities.filter((e) => e !== monster);
+									this.monsters = this.monsters.filter((m) => m !== monster);
+									this.checkWinCondition();
+								}
+							}
+						});
+
+						this.potions.forEach((potion) => {
+							if (potion.x === this.player.x && potion.y === this.player.y) {
+								this.player.restoreHealth();
+								this.grid.gridArray[potion.x][potion.y].entities = this.grid.gridArray[potion.x][potion.y].entities.filter((e) => e !== potion);
+							}
+						});
+
+						if (this.player.hp <= 0) {
+							this.displayGameOver();
+							return;
+						}
+
+						setTimeout(() => {
+							this.monsters.forEach((monster) => this.moveMonster(monster));
+							this.isPlayerTurn = true;
+						}, 500);
+					}
+				}
+			}
+
+			moveMonster(monster) {
+				const directions = [
+					{ dx: -1, dy: 0 },
+					{ dx: 1, dy: 0 },
+					{ dx: 0, dy: -1 },
+					{ dx: 0, dy: 1 },
+				];
+
+				const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+				const newMonsterX = monster.x + randomDirection.dx;
+				const newMonsterY = monster.y + randomDirection.dy;
+
+				if (newMonsterX >= 0 && newMonsterX < 8 && newMonsterY >= 0 && newMonsterY < 8 && !this.grid.isPositionBlocked(newMonsterX, newMonsterY)) {
+					this.grid.moveEntity(monster, newMonsterX, newMonsterY);
+				}
+
+				if (monster.x === this.player.x && monster.y === this.player.y) {
+					const damage = (monster.atk - this.player.def) * Math.floor(Math.random() * 5) + 1;
+					this.player.takeDamage(damage);
+				}
+			}
+
+			checkWinCondition() {
+				if (this.monsters.length === 0) {
+					this.displayMessage("You Win!");
+				}
+			}
+
+			displayMessage(message) {
+				const messageContainer = document.getElementById("game-message");
+				messageContainer.textContent = message;
+				messageContainer.style.display = "block";
+			}
+
+			displayGameOver() {
+				const messageContainer = document.getElementById("game-message");
+				messageContainer.textContent = "Game Over";
+				messageContainer.style.display = "block";
+			}
+		}
+
+		const messageContainer = document.createElement('div');
+		messageContainer.id = 'game-message';
+		document.body.appendChild(messageContainer);
+
+		const main = new Main();
+	</script>
+</html>
